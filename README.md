@@ -146,9 +146,16 @@ python scripts/download_corpus.py "Alan Turing" "Byzantine Empire"
 python scripts/download_corpus.py --list   # show defaults
 ```
 
-**Add scenarios** — append to `kvcache_sanity/data/scenarios/default.yaml` or pass `--scenarios-file path/to/custom.yaml`.
+**Add scenarios/documents without touching the install** — drop `.yaml` scenario files or `.txt` corpus documents into the user data directory and they're merged on top of the bundled ones (a user `id`/`doc_id` that matches a bundled one wins):
 
-**Custom corpus** — pass `--corpus-dir /path/to/docs`. Documents must be `.txt` with `# Title` on the first line.
+```
+~/.local/share/kvcache-sanity-check/scenarios/*.yaml
+~/.local/share/kvcache-sanity-check/corpus/*.txt
+```
+
+This follows the XDG Base Directory spec (`$XDG_DATA_HOME/kvcache-sanity-check` if set), or override the whole location with `KVCACHE_DATA_DIR=/path/to/dir`.
+
+**Full override instead of merge** — pass `--scenarios-file path/to/custom.yaml` or `--corpus-dir /path/to/docs` to use *only* that file/directory, ignoring both the bundled and user data. Documents must be `.txt` with `# Title` on the first line.
 
 ## Roadmap
 
