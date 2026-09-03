@@ -38,21 +38,24 @@ Exits with code 1 if any scenario fails.
 kvcache_sanity/
   main.py        CLI entry point (Click)
   models.py      Pydantic data models: Document, Scenario, EvaluationResult, TestResult
-  corpus.py      Load .txt documents from corpus/
+  corpus.py      Load .txt documents from data/corpus/
   runner.py      Build multi-turn conversations and call the inference server
   evaluator.py   LLM-as-judge comparison between target and reference answers
   report.py      Rich-formatted terminal output
 
-scenarios/
-  default.yaml   Built-in test scenarios
-
-corpus/
-  doc_s1_python.txt          ~500 words — Python language history
-  doc_s2_coffee.txt          ~600 words — Coffee origins
-  doc_m1_apollo.txt          ~1100 words — Apollo space program
-  doc_m2_dna.txt             ~1000 words — DNA double helix discovery
-  doc_l1_french_revolution.txt  ~1600 words — French Revolution
+  data/
+    scenarios/
+      default.yaml   Built-in test scenarios
+      presets/       Context-length presets (4k/8k/32k/128k.yaml)
+    corpus/
+      doc_s1_python.txt          ~500 words — Python language history
+      doc_s2_coffee.txt          ~600 words — Coffee origins
+      doc_m1_apollo.txt          ~1100 words — Apollo space program
+      doc_m2_dna.txt             ~1000 words — DNA double helix discovery
+      doc_l1_french_revolution.txt  ~1600 words — French Revolution
 ```
+
+`corpus.py`/`main.py`/`replay.py` resolve `data/` via `importlib.resources`, not `Path(__file__)` — this is what makes the corpus and default scenarios ship inside the installed wheel and still resolve correctly outside a source checkout.
 
 ### Evaluation design
 
@@ -68,9 +71,9 @@ Questions are intentionally about **early documents** in the conversation (loade
 
 ## Extending
 
-**Add documents** — drop `.txt` files in `corpus/`. First line must be `# Title`, remainder is the body.
+**Add documents** — drop `.txt` files in `kvcache_sanity/data/corpus/`. First line must be `# Title`, remainder is the body.
 
-**Add scenarios** — add entries to `scenarios/default.yaml` or pass `--scenarios-file path/to/custom.yaml`.
+**Add scenarios** — add entries to `kvcache_sanity/data/scenarios/default.yaml` or pass `--scenarios-file path/to/custom.yaml`.
 
 **Custom corpus** — pass `--corpus-dir`.
 

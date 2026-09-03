@@ -115,18 +115,18 @@ The corpus uses full Wikipedia articles (~5,000–15,000 words each) downloaded 
 
 ## Context-length presets
 
-`scenarios/presets/` has one scenario file per target context window, sized to sit comfortably below that window (not right at the edge) so a run against a server configured for that window doesn't error out on a snug prompt. Each file's header comment shows the token math and the `--max-tokens` value it assumes.
+`kvcache_sanity/data/scenarios/presets/` has one scenario file per target context window, sized to sit comfortably below that window (not right at the edge) so a run against a server configured for that window doesn't error out on a snug prompt. Each file's header comment shows the token math and the `--max-tokens` value it assumes.
 
 | Preset | Window | Recall target | Recommended flags |
 |---|---|---|---|
-| `scenarios/presets/4k.yaml` | 4,096 | first (smallest) document | `--max-tokens 256` |
-| `scenarios/presets/8k.yaml` | 8,192 | first document | `--max-tokens 512` |
-| `scenarios/presets/32k.yaml` | 32,768 | first + middle document | `--max-tokens 1024` (default) |
-| `scenarios/presets/128k.yaml` | 131,072 | first document | `--max-tokens 2048` |
+| `kvcache_sanity/data/scenarios/presets/4k.yaml` | 4,096 | first (smallest) document | `--max-tokens 256` |
+| `kvcache_sanity/data/scenarios/presets/8k.yaml` | 8,192 | first document | `--max-tokens 512` |
+| `kvcache_sanity/data/scenarios/presets/32k.yaml` | 32,768 | first + middle document | `--max-tokens 1024` (default) |
+| `kvcache_sanity/data/scenarios/presets/128k.yaml` | 131,072 | first document | `--max-tokens 2048` |
 
 ```bash
 kvcache-check --target-url http://localhost:8000 --model <model> \
-  --scenarios-file scenarios/presets/32k.yaml --max-tokens 1024
+  --scenarios-file kvcache_sanity/data/scenarios/presets/32k.yaml --max-tokens 1024
 ```
 
 Document token counts are the corpus's rough `chars/4` estimate (see `approximate_tokens` in `corpus.py`), not an exact tokenizer count — that's why each preset leaves ~10–18% headroom rather than targeting the window exactly. If your server's actual tokenizer produces meaningfully more tokens per document than this estimate, trim a document from the list or raise `--max-tokens` down accordingly.
@@ -146,7 +146,7 @@ python scripts/download_corpus.py "Alan Turing" "Byzantine Empire"
 python scripts/download_corpus.py --list   # show defaults
 ```
 
-**Add scenarios** — append to `scenarios/default.yaml` or pass `--scenarios-file path/to/custom.yaml`.
+**Add scenarios** — append to `kvcache_sanity/data/scenarios/default.yaml` or pass `--scenarios-file path/to/custom.yaml`.
 
 **Custom corpus** — pass `--corpus-dir /path/to/docs`. Documents must be `.txt` with `# Title` on the first line.
 
