@@ -11,6 +11,7 @@ Usage:
 import re
 import sys
 from datetime import datetime, timezone
+from importlib import resources
 from pathlib import Path
 
 import click
@@ -26,7 +27,7 @@ from kvcache_sanity.runner import _call_api, build_messages, build_pairs_message
 
 console = Console()
 
-_DEFAULT_SCENARIOS_FILE = Path(__file__).parent.parent / "scenarios" / "default.yaml"
+_DEFAULT_SCENARIOS_FILE = resources.files("kvcache_sanity") / "data" / "scenarios" / "default.yaml"
 
 
 def _load_scenarios(path: Path) -> list[Scenario]:

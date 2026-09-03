@@ -1,7 +1,8 @@
+from importlib import resources
 from pathlib import Path
 from kvcache_sanity.models import Document
 
-CORPUS_DIR = Path(__file__).parent.parent / "corpus"
+CORPUS_DIR = resources.files("kvcache_sanity") / "data" / "corpus"
 
 
 def load_documents(corpus_dir: Path | None = None) -> dict[str, Document]:

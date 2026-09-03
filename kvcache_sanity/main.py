@@ -1,5 +1,6 @@
 import sys
 import uuid
+from importlib import resources
 from pathlib import Path
 
 import click
@@ -21,7 +22,7 @@ from kvcache_sanity import report
 
 console = Console()
 
-DEFAULT_SCENARIOS_FILE = Path(__file__).parent.parent / "scenarios" / "default.yaml"
+DEFAULT_SCENARIOS_FILE = resources.files("kvcache_sanity") / "data" / "scenarios" / "default.yaml"
 
 _CONFIG_SEARCH_PATHS = [
     Path("kvcache-check.yaml"),
