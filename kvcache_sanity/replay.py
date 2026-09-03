@@ -64,9 +64,9 @@ def _parse_scenario_id(scenario_id: str) -> tuple[str, int | None]:
 @click.option("--temperature", default=0.1, show_default=True, type=float,
               help="Sampling temperature used if the log entry does not record one.")
 @click.option("--scenarios-file", default=None, type=click.Path(exists=True),
-              help="Scenarios YAML file. Defaults to scenarios/default.yaml.")
+              help="Scenarios YAML file. Defaults to the bundled default.yaml.")
 @click.option("--corpus-dir", default=None, type=click.Path(exists=True),
-              help="Corpus directory. Defaults to the bundled corpus/.")
+              help="Corpus directory. Defaults to the bundled corpus.")
 def replay(
     log_file, request_id, count,
     target_url, model, api_key, max_tokens, temperature,

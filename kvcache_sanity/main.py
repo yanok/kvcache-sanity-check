@@ -257,9 +257,9 @@ def _run_sequential_pairs(
 @click.option("--threshold", default=0.7, show_default=True, type=float,
               help="Minimum similarity score (0.0–1.0) to count as PASS.")
 @click.option("--scenarios-file", default=None, type=click.Path(exists=True),
-              help="Path to a YAML file with test scenarios. Defaults to scenarios/default.yaml.")
+              help="Path to a YAML file with test scenarios. Defaults to the bundled default.yaml.")
 @click.option("--corpus-dir", default=None, type=click.Path(exists=True),
-              help="Directory of .txt document files. Defaults to the bundled corpus/.")
+              help="Directory of .txt document files. Defaults to the bundled corpus.")
 @click.option("--max-tokens", default=1024, show_default=True, type=int,
               help="Max tokens for model answer responses.")
 @click.option("--judge-prompt", default=DEFAULT_PROMPT, show_default=True,
