@@ -119,15 +119,17 @@ The corpus uses full Wikipedia articles (~5,000–15,000 words each) downloaded 
 
 | Preset | Window | Recall target | Recommended flags |
 |---|---|---|---|
-| `kvcache_sanity/data/scenarios/presets/4k.yaml` | 4,096 | first (smallest) document | `--max-tokens 256` |
-| `kvcache_sanity/data/scenarios/presets/8k.yaml` | 8,192 | first document | `--max-tokens 512` |
-| `kvcache_sanity/data/scenarios/presets/32k.yaml` | 32,768 | first + middle document | `--max-tokens 1024` (default) |
-| `kvcache_sanity/data/scenarios/presets/128k.yaml` | 131,072 | first document | `--max-tokens 2048` |
+| `4k` | 4,096 | first (smallest) document | `--max-tokens 256` |
+| `8k` | 8,192 | first document | `--max-tokens 512` |
+| `32k` | 32,768 | first + middle document | `--max-tokens 1024` (default) |
+| `128k` | 131,072 | first document | `--max-tokens 2048` |
 
 ```bash
 kvcache-check --target-url http://localhost:8000 --model <model> \
-  --scenarios-file kvcache_sanity/data/scenarios/presets/32k.yaml --max-tokens 1024
+  --scenarios 32k --max-tokens 1024
 ```
+
+`--scenarios NAME` resolves a preset by name against the user scenarios dir first, then the bundled presets, then the bundled `default.yaml` (so `--scenarios default` also works) — this is what makes presets reachable from an installed package, where the bundled files no longer sit at a predictable path relative to your working directory. To point at a scenario file directly instead, use `--scenarios-file path/to/file.yaml` (see below); the two flags are mutually exclusive.
 
 Document token counts are the corpus's rough `chars/4` estimate (see `approximate_tokens` in `corpus.py`), not an exact tokenizer count — that's why each preset leaves ~10–18% headroom rather than targeting the window exactly. If your server's actual tokenizer produces meaningfully more tokens per document than this estimate, trim a document from the list or raise `--max-tokens` down accordingly.
 
@@ -156,6 +158,8 @@ python scripts/download_corpus.py --list   # show defaults
 This follows the XDG Base Directory spec (`$XDG_DATA_HOME/kvcache-sanity-check` if set), or override the whole location with `KVCACHE_DATA_DIR=/path/to/dir`.
 
 **Full override instead of merge** — pass `--scenarios-file path/to/custom.yaml` or `--corpus-dir /path/to/docs` to use *only* that file/directory, ignoring both the bundled and user data. Documents must be `.txt` with `# Title` on the first line.
+
+Corpus lookup itself isn't affected by which scenario file/preset you pick — `load_documents()` always does its own bundled+user merge (see above) unless you pass `--corpus-dir` explicitly, in which case *only* that directory is searched, even for a `--scenarios NAME` preset that expects a document only present in the bundled or user corpus.
 
 ## Roadmap
 
