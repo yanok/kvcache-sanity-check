@@ -17,7 +17,7 @@ from kvcache_sanity.runner import (
     run_scenario,
     run_sequential_pair,
 )
-from kvcache_sanity.scenarios import load_scenarios
+from kvcache_sanity.scenarios import find_named_scenarios, load_scenarios
 from kvcache_sanity import report
 
 console = Console()
@@ -248,10 +248,15 @@ def _run_sequential_pairs(
                    "Multiple iterations help catch flaky caching failures.")
 @click.option("--threshold", default=0.7, show_default=True, type=float,
               help="Minimum similarity score (0.0–1.0) to count as PASS.")
+@click.option("--scenarios", "scenarios_name", default=None, metavar="NAME",
+              help="Named scenario set, e.g. '32k' — resolved against the user scenarios dir "
+                   "then the bundled presets/default.yaml (user wins on a name collision). "
+                   "Mutually exclusive with --scenarios-file.")
 @click.option("--scenarios-file", default=None, type=click.Path(exists=True),
-              help="Path to a YAML file with test scenarios, used exclusively. Without this, "
-                   "loads the bundled default.yaml merged with any *.yaml files in the user "
-                   "scenarios dir (see paths.user_data_dir(); user scenarios win on a matching id).")
+              help="Path to a YAML file with test scenarios, used exclusively. Without this or "
+                   "--scenarios, loads the bundled default.yaml merged with any *.yaml files in "
+                   "the user scenarios dir (see paths.user_data_dir(); user scenarios win on a "
+                   "matching id).")
 @click.option("--corpus-dir", default=None, type=click.Path(exists=True),
               help="Directory of .txt document files, used exclusively. Without this, loads the "
                    "bundled corpus merged with the user corpus dir (see paths.user_data_dir(); "
@@ -270,7 +275,7 @@ def cli(
     target_url, model, api_key,
     judge_url, judge_model, judge_api_key,
     temperature, judge_temperature,
-    iterations, threshold, scenarios_file, corpus_dir,
+    iterations, threshold, scenarios_name, scenarios_file, corpus_dir,
     max_tokens, judge_prompt, log_file, verbose,
 ):
     """Sanity-check LLM output correctness when using offloaded KV cache.
@@ -281,9 +286,17 @@ def cli(
     against a reference obtained by forcing a full recompute via a unique cache-busting
     prefix injected into the system message.
     """
+    if scenarios_name and scenarios_file:
+        raise click.UsageError("--scenarios and --scenarios-file are mutually exclusive.")
+
     corpus_path = Path(corpus_dir) if corpus_dir else None
     documents = load_documents(corpus_path)
 
+    if scenarios_name:
+        try:
+            scenarios_file = find_named_scenarios(scenarios_name)
+        except FileNotFoundError as exc:
+            raise click.BadParameter(str(exc), param_hint="--scenarios")
     scenarios = load_scenarios(scenarios_file)
 
     # Normalise base URLs — strip trailing slash
