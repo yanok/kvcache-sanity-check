@@ -1,6 +1,5 @@
 import sys
 import uuid
-from importlib import resources
 from pathlib import Path
 
 import click
@@ -11,18 +10,17 @@ from rich.console import Console
 from kvcache_sanity.corpus import load_documents
 from kvcache_sanity.evaluator import evaluate_answers, DEFAULT_PROMPT, PROMPT_NAMES
 from kvcache_sanity.logger import RunLogger
-from kvcache_sanity.models import EvaluationResult, EvaluationTrace, RunResult, Scenario, TestResult
+from kvcache_sanity.models import EvaluationResult, EvaluationTrace, RunResult, TestResult
 from kvcache_sanity.runner import (
     get_reference_answer,
     get_reference_pair_answer,
     run_scenario,
     run_sequential_pair,
 )
+from kvcache_sanity.scenarios import load_scenarios
 from kvcache_sanity import report
 
 console = Console()
-
-DEFAULT_SCENARIOS_FILE = resources.files("kvcache_sanity") / "data" / "scenarios" / "default.yaml"
 
 _CONFIG_SEARCH_PATHS = [
     Path("kvcache-check.yaml"),
@@ -69,12 +67,6 @@ class _ConfigFileCommand(click.Command):
         if config:
             kwargs.setdefault("default_map", {}).update(config)
         return super().make_context(info_name, args, **kwargs)
-
-
-def _load_scenarios(path: Path) -> list[Scenario]:
-    with open(path) as f:
-        data = yaml.safe_load(f)
-    return [Scenario(**s) for s in data["scenarios"]]
 
 
 def _run_scenario_iterations(
@@ -257,9 +249,13 @@ def _run_sequential_pairs(
 @click.option("--threshold", default=0.7, show_default=True, type=float,
               help="Minimum similarity score (0.0–1.0) to count as PASS.")
 @click.option("--scenarios-file", default=None, type=click.Path(exists=True),
-              help="Path to a YAML file with test scenarios. Defaults to the bundled default.yaml.")
+              help="Path to a YAML file with test scenarios, used exclusively. Without this, "
+                   "loads the bundled default.yaml merged with any *.yaml files in the user "
+                   "scenarios dir (see paths.user_data_dir(); user scenarios win on a matching id).")
 @click.option("--corpus-dir", default=None, type=click.Path(exists=True),
-              help="Directory of .txt document files. Defaults to the bundled corpus.")
+              help="Directory of .txt document files, used exclusively. Without this, loads the "
+                   "bundled corpus merged with the user corpus dir (see paths.user_data_dir(); "
+                   "user documents win on a matching doc_id).")
 @click.option("--max-tokens", default=1024, show_default=True, type=int,
               help="Max tokens for model answer responses.")
 @click.option("--judge-prompt", default=DEFAULT_PROMPT, show_default=True,
@@ -288,8 +284,7 @@ def cli(
     corpus_path = Path(corpus_dir) if corpus_dir else None
     documents = load_documents(corpus_path)
 
-    scenarios_path = Path(scenarios_file) if scenarios_file else DEFAULT_SCENARIOS_FILE
-    scenarios = _load_scenarios(scenarios_path)
+    scenarios = load_scenarios(scenarios_file)
 
     # Normalise base URLs — strip trailing slash
     target_base = target_url.rstrip("/")

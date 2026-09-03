@@ -11,29 +11,19 @@ Usage:
 import re
 import sys
 from datetime import datetime, timezone
-from importlib import resources
 from pathlib import Path
 
 import click
-import yaml
 from openai import OpenAI
 from rich.console import Console
 from rich.rule import Rule
 
 from kvcache_sanity.corpus import load_documents
 from kvcache_sanity.logger import load_run_logs
-from kvcache_sanity.models import Scenario
 from kvcache_sanity.runner import _call_api, build_messages, build_pairs_messages
+from kvcache_sanity.scenarios import load_scenarios
 
 console = Console()
-
-_DEFAULT_SCENARIOS_FILE = resources.files("kvcache_sanity") / "data" / "scenarios" / "default.yaml"
-
-
-def _load_scenarios(path: Path) -> list[Scenario]:
-    with open(path) as f:
-        data = yaml.safe_load(f)
-    return [Scenario(**s) for s in data["scenarios"]]
 
 
 def _parse_scenario_id(scenario_id: str) -> tuple[str, int | None]:
@@ -64,9 +54,11 @@ def _parse_scenario_id(scenario_id: str) -> tuple[str, int | None]:
 @click.option("--temperature", default=0.1, show_default=True, type=float,
               help="Sampling temperature used if the log entry does not record one.")
 @click.option("--scenarios-file", default=None, type=click.Path(exists=True),
-              help="Scenarios YAML file. Defaults to the bundled default.yaml.")
+              help="Scenarios YAML file, used exclusively. Without this, loads the bundled "
+                   "default.yaml merged with the user scenarios dir (see paths.user_data_dir()).")
 @click.option("--corpus-dir", default=None, type=click.Path(exists=True),
-              help="Corpus directory. Defaults to the bundled corpus.")
+              help="Corpus directory, used exclusively. Without this, loads the bundled corpus "
+                   "merged with the user corpus dir (see paths.user_data_dir()).")
 def replay(
     log_file, request_id, count,
     target_url, model, api_key, max_tokens, temperature,
@@ -103,11 +95,10 @@ def replay(
     # --- reconstruct messages ---
     base_id, pair_idx = _parse_scenario_id(entry.scenario_id)
 
-    scenarios_path = Path(scenarios_file) if scenarios_file else _DEFAULT_SCENARIOS_FILE
-    scenarios = _load_scenarios(scenarios_path)
+    scenarios = load_scenarios(scenarios_file)
     scenario = next((s for s in scenarios if s.id == base_id), None)
     if scenario is None:
-        console.print(f"[red]Scenario {base_id!r} not found in {scenarios_path}[/]")
+        console.print(f"[red]Scenario {base_id!r} not found[/]")
         sys.exit(1)
 
     corpus_path = Path(corpus_dir) if corpus_dir else None
